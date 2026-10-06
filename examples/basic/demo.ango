@@ -1,0 +1,51 @@
+default name = "Asep"
+default found_key = false
+default checked = false
+default courage = 0
+
+label start
+
+scene "Kelas" with fade 0.8
+show asep "senang" at right with fade 0.4
+
+"Bel pulang sudah berbunyi. Kelas mulai sepi."
+@id("intro_001")
+Asep: "Halo, aku [name]. Kunci lemari itu hilang."
+jump hallway
+
+label hallway
+
+scene "test" with fade 0.8
+show asep "senang" at left with fade 0.4
+jump hallway_loop
+
+label hallway_loop
+
+choice:
+    "Ambil kunci" if not found_key:
+        set found_key = true
+        set courage = courage + 1
+        Asep: "Ketemu! Kuncinya ada di bawah meja."
+        jump hallway_loop
+    "Periksa meja" if not checked:
+        set checked = true
+        set courage = courage + 1
+        Asep: "Cuma debu saja. Tapi keberanianku naik jadi [courage]."
+        jump hallway_loop
+    "Buka lemari" if found_key:
+        call open_cabinet
+        jump finale
+    "Pulang saja":
+        jump finale
+
+label open_cabinet
+Asep: "Lemarinya terbuka."
+return
+
+label finale
+hide asep with fade 0.4
+if courage >= 2:
+    "Kamu pulang dengan kepala tegak."
+else:
+    "Kamu pulang sambil menoleh ke belakang."
+end
