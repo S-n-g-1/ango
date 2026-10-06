@@ -1,6 +1,7 @@
 # Binaries and compiled executables
 /bin/
 /exit
+/.version
 
 # Go workspace and vendor directories (jika ada)
 /vendor/
@@ -19,4 +20,5 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
-*~
+*~.version
+.version/
