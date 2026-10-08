@@ -1,9 +1,0 @@
-
-default player_name = "Asep"
-
-label start
-scene "test" with fade 0.5
-
-"test main"
-
-
