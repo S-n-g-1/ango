@@ -1,0 +1,4 @@
+label start
+if true:
+  "dua spasi bukan kelipatan empat"
+end

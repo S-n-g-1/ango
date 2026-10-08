@@ -1,0 +1,10 @@
+default score = 0
+
+label start
+Asep: "Halo"
+set score = score + 1
+choice:
+    "A":
+        Asep: "pilih A"
+    "B":
+        Asep: "pilih B"

@@ -39,4 +39,3 @@ func TestNamespaceSyntaxErrors(t *testing.T) {
 		}
 	}
 }
-

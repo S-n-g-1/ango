@@ -1,21 +1,26 @@
-# Binaries and compiled executables
+# Build output
 /bin/
+/dist/
+*.exe
 /exit
 .version/
 
-# Go workspace and vendor directories (jika ada)
+# Go
 /vendor/
+*.test
+*.out
+coverage.*
 
-# OS generated files
+# OS files
 .DS_Store
-.DS_Store?
 ._*
 .Spotlight-V100
 .Trashes
 ehthumbs.db
 Thumbs.db
+Desktop.ini
 
-# IDE and Editor configurations
+# Editors
 .vscode/
 .idea/
 *.swp

@@ -20,6 +20,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -28,16 +29,24 @@ import (
 	"ango/engine/script"
 )
 
+// version is set at build time: -ldflags "-X main.version=1.2.3".
+var version = "dev"
+
 func main() {
+	showVersion := flag.Bool("version", false, "print the version and exit")
 	check := flag.Bool("check", false, "compile only; report errors and exit")
 	auto := flag.Bool("auto", false, "no prompts: continue at once and pick the first option")
 	window := flag.Bool("window", false, "play in a graphical window instead of the terminal (ignored with -check)")
 	assets := flag.String("assets", "", "assets directory for -window (default: <script dir>/assets, or <story dir>/assets for a folder)")
 	flag.Usage = func() {
-		fmt.Fprintln(os.Stderr, "usage: ango [-check] [-auto] [-window] [-assets dir] script.ango|story-dir")
+		fmt.Fprintln(os.Stderr, "usage: ango [-version] [-check] [-auto] [-window] [-assets dir] script.ango|story-dir")
 		flag.PrintDefaults()
 	}
 	flag.Parse()
+	if *showVersion {
+		fmt.Printf("ango %s (%s/%s)\n", version, runtime.GOOS, runtime.GOARCH)
+		return
+	}
 	if flag.NArg() != 1 {
 		flag.Usage()
 		os.Exit(2)

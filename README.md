@@ -1,46 +1,103 @@
-# Ango v0.1
+# Ango
 
-Ango adalah engine visual novel yang ditulis dengan Go. Ceritanya ditulis di berkas teks `.ango` yang ringkas, lalu dikompilasi ke bytecode dan dimainkan oleh VM, baik di terminal maupun di window (Ebitengine).
+**Engine visual novel berbasis Go dengan bahasa skrip sendiri.**
 
-> **Status: v0.1, tahap awal.** Bahasa dan API masih bisa berubah. Daftar yang belum ada ada di bagian [Belum ada di v0.1](#belum-ada-di-v01).
+Ceritanya ditulis di berkas teks `.ango` yang ringkas, dikompilasi menjadi bytecode, lalu dimainkan oleh VM di terminal atau di window grafis ([Ebitengine](https://ebitengine.org)). Berjalan di **Linux** dan **Windows** dari satu kode sumber, tanpa compiler C.
+
+> **Status: v0.1.1, tahap awal.** Bahasa dan API masih bisa berubah. Lihat [Keterbatasan](#keterbatasan-saat-ini) dan [CHANGELOG](CHANGELOG.md).
+
+## Daftar isi
+
+- [Fitur](#fitur)
+- [Mulai cepat](#mulai-cepat)
+- [Contoh skrip](#contoh-skrip)
+- [Struktur game](#struktur-game)
+- [Menjalankan](#menjalankan)
+- [Launcher](#launcher)
+- [Platform yang didukung](#platform-yang-didukung)
+- [Membangun dan menguji](#membangun-dan-menguji)
+- [Struktur repositori](#struktur-repositori)
+- [Dokumentasi](#dokumentasi)
+- [Keterbatasan saat ini](#keterbatasan-saat-ini)
+- [Berkontribusi](#berkontribusi)
+- [Lisensi](#lisensi)
 
 ## Fitur
 
-- **Bahasa skrip `.ango`**: dialog, narasi, variabel, percabangan, pilihan, dan lompatan antar label.
-- **Cerita banyak berkas**: satu folder = satu game, dengan `namespace` opsional per berkas supaya nama label tidak bentrok.
-- **Compiler dengan pesan error berposisi**: `ango -check` melaporkan semua kesalahan sekaligus beserta berkas dan barisnya.
-- **Dua mode main**: terminal dan window grafis.
-- **Latar dan karakter**: `scene`, `show`, `hide`, tiga posisi (`left`, `center`, `right`), `flip` untuk membalik sprite, dan transisi `fade`.
-- **Banyak karakter sekaligus** di layar, dengan ekspresi per karakter.
-- **Tema GUI** (`gui/theme.json`) untuk kotak dialog, plat nama, dan tombol, plus menu utama dan menu jeda yang bisa diaktifkan.
-- **Launcher grafis** (`ango-launcher`, dibuka lewat `ango.sh`) untuk memilih proyek lalu menjalankan, memeriksa, atau menguji otomatis.
-- **Format gambar**: WebP, PNG, JPEG, dan SVG.
+- **Bahasa skrip `.ango`**: dialog, narasi, variabel, percabangan, pilihan bersyarat, dan lompatan antar label (`jump`, `call`, `return`).
+- **Cerita banyak berkas**: satu folder adalah satu game; `namespace` opsional per berkas mencegah bentrok nama label.
+- **Compiler dengan error berposisi**: `ango -check` melaporkan semua kesalahan sekaligus beserta berkas, baris, dan kolom.
+- **Dua mode main**: terminal (pilihan bernomor) dan window grafis.
+- **Latar dan karakter**: `scene`, `show`, `hide`, posisi `left`/`center`/`right`, `flip` untuk membalik sprite, dan transisi `fade`. Beberapa karakter dapat tampil bersamaan.
+- **Tema GUI** lewat `gui/theme.json` untuk kotak dialog, plat nama, tombol, serta menu utama dan menu jeda.
+- **Launcher grafis** (`ango-launcher`) untuk memilih proyek lalu menjalankan, memeriksa, atau menguji otomatis.
+- **Format gambar**: WebP, PNG, JPEG, dan SVG. Aset yang belum ada diganti placeholder sehingga skrip bisa dijalankan sebelum seninya siap.
+- **Lintas-platform**: Linux dan Windows, dengan build lintas-kompilasi dan paket rilis untuk keduanya.
 
 ## Mulai cepat
 
-Butuh Go (sesuai `go.mod`) dan pustaka sistem untuk Ebitengine (OpenGL dan X11 di Linux).
+### Dari paket rilis
+
+| Platform | Langkah |
+| --- | --- |
+| Linux | `tar -xzf ango-<versi>-linux-amd64.tar.gz`, lalu `./play.sh` (contoh) atau `./ango.sh` (launcher) |
+| Windows | Ekstrak `ango-<versi>-windows-amd64.zip`, lalu klik dua kali `play.bat` atau `ango.bat` |
+
+### Dari kode sumber
+
+Butuh Go sesuai `go.mod`. Di Linux juga butuh library OpenGL dan X11 ([detail](docs/v0.1.1/platforms.md#linux)).
 
 ```bash
-make build                      # bin/ango dan bin/ango-launcher
-./bin/ango -window examples/intro
-```
-
-Atau lewat launcher:
-
-```bash
-make launcher-run               # membuka launcher dengan folder examples/
+make build                          # bin/ango dan bin/ango-launcher
+./bin/ango -window examples/intro   # Windows: bin\ango.exe -window examples\intro
 ```
 
 Tanpa `make`:
 
 ```bash
 go run ./cmd/ango -window examples/intro
-go run ./cmd/ango -check examples/intro
 ```
+
+```powershell
+# Windows tanpa make
+powershell -ExecutionPolicy Bypass -File scripts\build.ps1
+```
+
+## Contoh skrip
+
+```ango
+default player_name = "Asep"
+default courage = 0
+
+label start
+scene "Kelas" with fade 0.8
+show asep "Calm" at left with fade 0.4
+
+"Hujan belum berhenti sejak subuh."
+Asep: "Halo, aku [player_name]."
+
+choice:
+    "Periksa laci":
+        set courage = courage + 1
+        Asep: "Ada selembar kertas lipat."
+        jump finale
+    "Pulang saja":
+        jump finale
+
+label finale
+hide asep with fade 0.4
+if courage >= 1:
+    "Kamu pulang dengan kepala tegak."
+else:
+    "Kamu pulang sambil menoleh ke belakang."
+end
+```
+
+Panduan lengkap bahasa: [Referensi bahasa](docs/v0.1.1/language-reference.md).
 
 ## Struktur game
 
-Satu game adalah satu folder:
+Satu game adalah satu folder. Semua berkas `.ango` di dalamnya (termasuk subfolder) dimuat sekaligus, dan cerita dimulai dari label `start` yang harus ada dan unik.
 
 ```
 examples/intro/
@@ -52,166 +109,68 @@ examples/intro/
     ├── characters/
     │   ├── asep/      # Calm.png, Smile.png, ...
     │   └── dina/
-    └── gui/           # opsional: theme.json, textbox.png, button.png, ...
+    └── gui/           # opsional: theme.json, textbox.png, ...
 ```
 
-Semua berkas `.ango` di folder dimuat sekaligus. Cerita dimulai dari label `start`, yang harus ada dan unik.
-
-## Bahasa Ango
-
-### Dasar
-
-```ango
-# komentar
-default player_name = "Asep"      # variabel global; nilai awal harus literal
-default courage = 0
-default sudah_tahu = false
-
-label start                        # isi label TIDAK diberi indentasi
-scene "Kelas" with fade 0.8
-"Narasi tanpa pembicara."
-Asep: "Halo, [player_name]."       # [nama] menyisipkan nilai variabel
-"Bu Rina": "Nama dengan spasi ditulis sebagai string."
-set courage = courage + 1
-jump chapter1.opening
-```
-
-- Tipe nilai: bilangan bulat, desimal, string, dan boolean (`true`/`false`).
-- Operator: `+ - * /`, `== != < <= > >=`, dan `and or not`.
-- Indentasi hanya dipakai di dalam blok `if`, `else`, dan `choice` (kelipatan 4 spasi).
-- Kata cadangan: `and or not label scene show hide choice jump call return set if else default namespace flip end at with true false`. Kata ini tidak bisa jadi nama variabel atau label, dan pembicara bernama kata cadangan harus ditulis sebagai string.
-
-### Percabangan dan pilihan
-
-```ango
-if courage > 1 and not sudah_tahu:
-    Asep: "Aku berani."
-else:
-    "Masih ragu."
-
-choice:
-    "Buka kertasnya" if courage >= 0:
-        set sudah_tahu = true
-        jump surat
-    "Biarkan dulu":
-        jump pelajaran
-```
-
-Opsi pilihan boleh punya syarat (`if ...`). Opsi yang syaratnya salah tidak ditampilkan.
-
-### Alur: `jump`, `call`, `return`, `end`
-
-```ango
-call tampilkan_judul     # lompat dan kembali setelah `return`
-jump finale              # lompat tanpa kembali
-end                      # akhiri cerita
-```
-
-Label yang tidak diakhiri `jump`, `return`, atau `end` otomatis berakhir dengan `end`.
-
-### Namespace
-
-Untuk cerita yang dipecah ke banyak berkas, `namespace` di baris pertama sebuah berkas membuat semua labelnya milik namespace itu:
-
-```ango
-namespace chapter1
-
-label opening
-"Ini bab 1."
-jump ruang_kelas            # label di berkas yang sama: cukup nama pendek
-...
-jump chapter2.opening       # dari berkas lain: tulis lengkap namespace.label
-```
-
-Aturan singkat: `namespace` opsional, harus jadi deklarasi pertama dan hanya sekali per berkas, `start` tetap global, dan variabel (`default`) tetap global. Detail ada di [docs/namespace.md](docs/namespace.md).
-
-### Latar, karakter, dan transisi
-
-```ango
-scene "Kelas" with fade 0.8
-show asep "Calm" at left with fade 0.4
-show dina "Smile" at right flip with fade 0.4
-hide dina with fade 0.4
-```
-
-- `at left | center | right`. Bawaannya `center`.
-- `flip` membalik sprite secara horizontal. Konvensi aset: sprite digambar menghadap kanan, jadi karakter di sisi kanan layar diberi `flip`.
-- `show` pada karakter yang sudah tampil memindahkannya atau mengganti ekspresinya, tidak membuat salinan.
-- Transisi: `with <nama> <detik>`. Saat ini hanya `fade` yang dikenali. Detail di [docs/show.md](docs/show.md) dan [docs/transitions.md](docs/transitions.md).
-
-### Letak aset
-
-| Perintah | Dicari di (`assets/`) |
-| --- | --- |
-| `scene "Kelas"` | `backgrounds/Kelas.*` |
-| `show asep "Calm"` | `characters/asep_Calm.*`, lalu `characters/asep/Calm.*`, lalu `characters/asep.*` |
-
-Ekstensi dicoba berurutan: `.webp`, `.png`, `.jpg`, `.jpeg`, `.svg`. Nama berkas peka huruf besar-kecil di Linux. Aset yang tidak ditemukan diganti placeholder (blok warna berlabel), jadi skrip bisa dijalankan sebelum seni siap.
+Letak dan aturan penamaan aset ada di [Latar dan karakter](docs/v0.1.1/scenes-and-sprites.md#letak-berkas). Nama aset **peka huruf besar-kecil** (penting di Linux) dan memakai `/` sebagai pemisah di semua platform.
 
 ## Menjalankan
 
 ```
-ango [-check] [-auto] [-window] [-assets dir] script.ango|folder-game
+ango [-version] [-check] [-auto] [-window] [-assets dir] script.ango|folder-game
 ```
 
 | Opsi | Fungsi |
 | --- | --- |
-| `-check` | Compile saja, laporkan error, lalu keluar |
+| `-check` | Compile saja, laporkan error, lalu keluar (kode keluar 1 bila ada error) |
 | `-auto` | Tanpa prompt: lanjut otomatis dan pilih opsi pertama |
 | `-window` | Main di window grafis (bawaan: terminal) |
 | `-assets dir` | Folder aset (bawaan: `<folder game>/assets`) |
+| `-version` | Cetak versi dan platform |
 
-Kontrol di window: klik atau Spasi/Enter untuk lanjut, klik atau tombol `1`-`9` untuk memilih, `Esc` membuka menu jeda bila menu diaktifkan.
-
-## Tema GUI dan menu utama
-
-Letakkan `assets/gui/theme.json` di game. Semua field opsional; tanpa berkas ini tampilan sama seperti bawaan. Contoh lengkap ada di `theme.example.json`.
-
-```json
-{
-  "font_size": 26,
-  "colors": { "text": "#FFFFFF", "textbox": "#000000BE", "button_hover": "#46468CF0" },
-  "textbox": { "x": 40, "y": 520, "w": 1200, "h": 170 },
-  "menu": { "enabled": true, "title": "Judul Game", "start": "Mulai", "quit": "Keluar" }
-}
-```
-
-- Warna: `#RRGGBB` atau `#RRGGBBAA`.
-- Gambar opsional di `assets/gui/`: `textbox`, `namebox`, `button`, `button_hover`, `menu_bg`, `title` (ekstensi apa saja yang dikenali). Gambar saat ini diregangkan ke ukuran kotaknya.
-- `menu.enabled: true` menampilkan menu utama saat game dibuka dan menu jeda lewat `Esc`.
+Kontrol di window: klik atau Spasi/Enter untuk lanjut, klik atau tombol `1`-`9` untuk memilih, `Esc` membuka menu jeda bila menu diaktifkan. Tampilan diatur lewat [tema GUI](docs/v0.1.1/gui-theme.md).
 
 ## Launcher
 
-`ango.sh` membuka jendela launcher: daftar proyek di kiri, tombol **Jalankan**, **Periksa Skrip**, **Uji Otomatis**, **Buka Folder**, **Tambah Folder**, dan **Segarkan** di kanan, serta panel log untuk keluaran semua perintah. Klik dua kali sebuah proyek untuk menjalankannya.
+`ango-launcher` menampilkan daftar proyek di kiri dan tombol **Jalankan**, **Periksa Skrip**, **Uji Otomatis**, **Buka Folder**, **Tambah Folder**, serta **Segarkan** di kanan, dengan panel log untuk keluaran semua perintah.
 
-Folder proyek tidak terkunci pada satu tempat. Urutan pencariannya (yang pertama ada yang dipakai):
+| Platform | Cara membuka |
+| --- | --- |
+| Linux | `./ango.sh [folder ...]` |
+| Windows | `ango.bat [folder ...]` |
 
-1. Folder di argumen: `./ango.sh ~/games ~/lain`
-2. Variabel lingkungan `ANGO_PROJECTS` (dipisah `:`)
-3. Daftar tersimpan di `~/.config/ango/launcher.json`
-4. Folder `projects/` di samping launcher
+Folder proyek tidak terkunci pada satu tempat; urutan pencariannya: argumen, `ANGO_PROJECTS`, konfigurasi tersimpan, lalu folder `projects/` di samping launcher. Detail, lokasi konfigurasi per OS, dan pencarian binary `ango` ada di [Launcher](docs/v0.1.1/launcher.md).
 
-Folder boleh berupa folder yang berisi banyak game (tiap sub-folder yang punya `.ango` jadi satu proyek) atau satu game langsung. Tombol **Tambah Folder** membuka pemilih folder sistem (butuh `zenity` atau `kdialog`) dan menyimpannya ke konfigurasi. Tanpa keduanya, edit konfigurasi atau pakai argumen.
+## Platform yang didukung
 
-```json
-{ "roots": ["/home/kamu/games", "/mnt/data/vn"], "ango": "/opt/ango/ango" }
-```
+| | Linux (amd64) | Windows (amd64) |
+| --- | --- | --- |
+| Terminal dan `-check` | ✅ | ✅ |
+| Window Ebitengine | ✅ | ✅ |
+| Launcher | ✅ | ✅ |
+| Paket rilis | `.tar.gz` | `.zip` |
+| Tes otomatis di CI | ✅ | ✅ |
 
-Lokasi binary `ango` dicari lewat `-ango <path>`, env `ANGO_BIN`, field `ango` di konfigurasi, folder yang sama dengan launcher, lalu `PATH`.
+Build memakai `CGO_ENABLED=0`, sehingga satu mesin dapat membuat paket untuk kedua OS. macOS, Android, dan Web adalah target berikutnya dan belum didukung. Persyaratan, lintas-kompilasi, aturan menulis cerita yang portabel, dan pemecahan masalah: [Platform](docs/v0.1.1/platforms.md).
 
-## Membangun
+## Membangun dan menguji
 
 ```bash
-make help        # daftar target
-make build       # bin/ango dan bin/ango-launcher
-make test        # go test ./...
-make check       # go vet + go test
-make dist        # dist/ango-0.1.0-linux-amd64.tar.gz
+make help                 # daftar target
+make build                # bin/ango dan bin/ango-launcher
+make test                 # semua tes
+make check                # gofmt + go vet + go test
+make cross                # compile + vet untuk Linux dan Windows
+make dist                 # paket rilis untuk OS saat ini
+make dist GOOS=windows    # paket .zip Windows, dari OS apa pun
+make dist-all             # Linux dan Windows sekaligus
 ```
 
-Paket `dist` berisi `ango`, `ango-launcher`, `ango.sh`, `projects/` (contoh game), README, dan `docs/` bila ada. Ubah `VERSION`, `STORY`, atau `PROJECTS` lewat variabel make, misalnya `make dist VERSION=0.1.1 STORY=examples/basic`.
+Variabel yang dapat diubah: `VERSION`, `GOOS`, `GOARCH`, `STORY` (contoh yang dibundel, bawaan `examples/intro`), `PROJECTS`. Contoh: `make dist VERSION=0.1.2 STORY=examples/basic`.
 
-## Struktur kode
+Pengujian berlapis: tes unit per paket, tes integrasi lintas paket dan lintas platform di [`test/`](test), dan setiap folder di `examples/` otomatis dimainkan sampai tamat. Rinciannya di [Pengujian](docs/v0.1.1/testing.md).
+
+## Struktur repositori
 
 | Folder | Isi |
 | --- | --- |
@@ -220,17 +179,45 @@ Paket `dist` berisi `ango`, `ango-launcher`, `ango.sh`, `projects/` (contoh game
 | `engine/game` | VM dan state permainan |
 | `engine/value` | tipe nilai |
 | `backend/ebitengine` | tampilan window: gambar, animasi, tema GUI, menu |
-| `cmd/ango` | CLI |
-| `cmd/ango-launcher` | launcher grafis |
+| `cmd/ango` | CLI dan adapter VM ke backend |
+| `cmd/ango-launcher` | launcher grafis dan lapisan platform |
+| `test` | tes integrasi lintas paket dan platform |
+| `examples` | cerita contoh (`basic`, `intro`) |
+| `scripts` | skrip pembungkus Linux dan Windows |
+| `docs` | dokumentasi |
 
-Compiler tidak mengenal backend, dan backend tidak mengenal compiler atau VM; adapter di `cmd/ango` menjembatani keduanya.
+Compiler tidak mengenal backend, dan backend tidak mengenal compiler atau VM; adapter di `cmd/ango` menjembatani keduanya. Lihat [Arsitektur](docs/v0.1.1/architecture.md).
 
-## Belum ada di v0.1
+## Dokumentasi
 
-- Audio (folder `audio/` belum dipakai).
-- Simpan dan muat permainan; tombol "Lanjut" di menu belum berfungsi.
-- Layar pengaturan, dan "Menu Utama"/"Mulai ulang" dari menu jeda.
-- Transisi selain `fade` (efek geser untuk perpindahan posisi belum ada).
+Mulai dari [docs/v0.1.1/README.md](docs/v0.1.1/README.md):
+[Memulai](docs/v0.1.1/getting-started.md) ·
+[Referensi bahasa](docs/v0.1.1/language-reference.md) ·
+[Namespace](docs/v0.1.1/namespaces.md) ·
+[Latar dan karakter](docs/v0.1.1/scenes-and-sprites.md) ·
+[Transisi](docs/v0.1.1/transitions.md) ·
+[Tema GUI](docs/v0.1.1/gui-theme.md) ·
+[Launcher](docs/v0.1.1/launcher.md) ·
+[Platform](docs/v0.1.1/platforms.md) ·
+[Arsitektur](docs/v0.1.1/architecture.md) ·
+[Pengujian](docs/v0.1.1/testing.md)
+
+## Keterbatasan saat ini
+
+- Audio belum ada (folder `audio/` belum dipakai).
+- Simpan dan muat permainan belum tersedia; tombol "Lanjut" di menu belum berfungsi. (State VM sudah dapat disalin dan dipulihkan; antarmukanya yang belum.)
+- Layar pengaturan, serta "Menu Utama" dan "Mulai ulang" dari menu jeda.
+- Transisi selain `fade`; perpindahan posisi belum menggeser.
 - Bingkai sembilan-irisan untuk gambar GUI.
 - Mode debug (`ango debug`, overlay variabel) dan berkas bytecode terkompilasi.
-- Dukungan Windows dan macOS belum diuji.
+- Pemeriksaan tipe (mis. `if 1:`) terjadi saat dijalankan, bukan oleh `-check`.
+- Paket rilis Windows belum ditandatangani sehingga SmartScreen dapat memberi peringatan.
+- macOS, Android, dan Web belum didukung.
+
+## Berkontribusi
+
+Lihat [CONTRIBUTING.md](CONTRIBUTING.md) untuk standar kode, aturan lintas-platform, dan alur perubahan.
+
+## Lisensi
+
+[MIT](LICENSE) © 2026 SUGI

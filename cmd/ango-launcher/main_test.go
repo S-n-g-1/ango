@@ -93,7 +93,7 @@ func TestResolveRootsPrecedence(t *testing.T) {
 		wantSource string
 	}{
 		{"args win", []string{"/a"}, "/env", cfg, []string{"/a"}, "argumen"},
-		{"env next", nil, "/e1:/e2", cfg, []string{"/e1", "/e2"}, "ANGO_PROJECTS"},
+		{"env next", nil, "/e1" + string(os.PathListSeparator) + "/e2", cfg, []string{"/e1", "/e2"}, "ANGO_PROJECTS"},
 		{"config next", nil, "", cfg, []string{"/cfg"}, "konfigurasi"},
 		{"fallback", nil, "", config{}, []string{"/fb"}, "bawaan"},
 		{"blank entries ignored", []string{" "}, "", config{}, []string{"/fb"}, "bawaan"},
@@ -107,9 +107,11 @@ func TestResolveRootsPrecedence(t *testing.T) {
 }
 
 func TestExpandHome(t *testing.T) {
-	t.Setenv("HOME", "/home/tester")
-	if got := expandHome("~/games"); got != "/home/tester/games" {
-		t.Errorf("got %q", got)
+	home := t.TempDir()
+	t.Setenv("HOME", home)        // Linux, macOS
+	t.Setenv("USERPROFILE", home) // Windows
+	if got, want := expandHome("~/games"), filepath.Join(home, "games"); got != want {
+		t.Errorf("got %q, want %q", got, want)
 	}
 	if got := expandHome("/abs/path"); got != "/abs/path" {
 		t.Errorf("got %q", got)
@@ -117,7 +119,9 @@ func TestExpandHome(t *testing.T) {
 }
 
 func TestConfigRoundTrip(t *testing.T) {
-	t.Setenv("XDG_CONFIG_HOME", t.TempDir())
+	cfgDir := t.TempDir()
+	t.Setenv("XDG_CONFIG_HOME", cfgDir) // Linux
+	t.Setenv("APPDATA", cfgDir)         // Windows
 	c, err := loadConfig()
 	if err != nil || len(c.Roots) != 0 {
 		t.Fatalf("missing config should be empty, got %+v, %v", c, err)
@@ -143,5 +147,34 @@ func TestFindAngoExplicit(t *testing.T) {
 	}
 	if _, err := findAngo(filepath.Join(dir, "nope")); err == nil {
 		t.Error("expected an error for a missing explicit path")
+	}
+}
+
+func TestAngoBinaryName(t *testing.T) {
+	for goos, want := range map[string]string{
+		"linux": "ango", "darwin": "ango", "windows": "ango.exe",
+	} {
+		if got := angoBinaryName(goos); got != want {
+			t.Errorf("angoBinaryName(%q) = %q, want %q", goos, got, want)
+		}
+	}
+}
+
+func TestOpenFolderCommand(t *testing.T) {
+	for goos, want := range map[string]string{
+		"linux": "xdg-open", "darwin": "open", "windows": "explorer",
+	} {
+		cmd := openFolderCommand(goos, "dir")
+		if len(cmd.Args) != 2 || cmd.Args[0] != want || cmd.Args[1] != "dir" {
+			t.Errorf("openFolderCommand(%q) args = %v, want [%s dir]", goos, cmd.Args, want)
+		}
+	}
+}
+
+func TestFolderPickersCoverEveryPlatform(t *testing.T) {
+	for _, goos := range []string{"linux", "darwin", "windows"} {
+		if len(folderPickers(goos)) == 0 {
+			t.Errorf("no folder picker for %s", goos)
+		}
 	}
 }

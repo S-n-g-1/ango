@@ -7,8 +7,10 @@
 // this order (first one that is set wins):
 //
 //  1. folders given on the command line
-//  2. the ANGO_PROJECTS environment variable (":"-separated)
-//  3. the roots saved in the config file (~/.config/ango/launcher.json)
+//  2. the ANGO_PROJECTS environment variable (":"-separated on Linux and
+//     macOS, ";"-separated on Windows)
+//  3. the roots saved in the config file (launcher.json under the user config directory:
+//     ~/.config/ango on Linux, %AppData%\ango on Windows)
 //  4. a "projects" folder next to the launcher binary
 //
 // "Tambah Folder" adds a folder at runtime and saves it to the config file.
@@ -29,6 +31,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
 	"sync"
@@ -260,45 +263,15 @@ func findAngo(explicit string) (string, error) {
 		return explicit, nil
 	}
 	if exe, err := os.Executable(); err == nil {
-		cand := filepath.Join(filepath.Dir(exe), "ango")
+		cand := filepath.Join(filepath.Dir(exe), angoBinaryName(runtime.GOOS))
 		if st, err := os.Stat(cand); err == nil && !st.IsDir() {
 			return cand, nil
 		}
 	}
-	if p, err := exec.LookPath("ango"); err == nil {
+	if p, err := exec.LookPath(angoBinaryName(runtime.GOOS)); err == nil {
 		return p, nil
 	}
 	return "", errors.New("binary ango tidak ditemukan (taruh di samping launcher, atau pakai -ango <path> / ANGO_BIN)")
-}
-
-var errNoPicker = errors.New("tidak ada zenity atau kdialog untuk memilih folder")
-
-// pickFolder opens a native folder chooser through zenity or kdialog.
-// An empty path with a nil error means the user cancelled.
-func pickFolder() (string, error) {
-	cands := []struct {
-		bin  string
-		args []string
-	}{
-		{"zenity", []string{"--file-selection", "--directory", "--title=Pilih folder proyek Ango"}},
-		{"kdialog", []string{"--getexistingdirectory", ".", "--title", "Pilih folder proyek Ango"}},
-	}
-	for _, c := range cands {
-		bin, err := exec.LookPath(c.bin)
-		if err != nil {
-			continue
-		}
-		out, err := exec.Command(bin, c.args...).Output()
-		var ee *exec.ExitError
-		if errors.As(err, &ee) {
-			return "", nil // cancelled
-		}
-		if err != nil {
-			return "", err
-		}
-		return strings.TrimSpace(string(out)), nil
-	}
-	return "", errNoPicker
 }
 
 // ============================================================
@@ -423,6 +396,7 @@ func (l *launcher) ensureVisible() {
 // start runs the ango binary with args, streaming its output to the log.
 func (l *launcher) start(title string, args ...string) {
 	cmd := exec.Command(l.ango, args...)
+	hideWindow(cmd)
 	pr, pw := io.Pipe()
 	cmd.Stdout, cmd.Stderr = pw, pw
 	l.logf("> %s: %s %s", title, filepath.Base(l.ango), strings.Join(args, " "))
@@ -476,12 +450,9 @@ func (l *launcher) actOpen() {
 	if !ok {
 		return
 	}
-	cmd := exec.Command("xdg-open", p.dir)
-	if err := cmd.Start(); err != nil {
-		l.logf("xdg-open gagal: %v", err)
-		return
+	if err := openFolder(p.dir); err != nil {
+		l.logf("membuka folder gagal: %v", err)
 	}
-	go cmd.Wait()
 }
 
 func (l *launcher) actRefresh() {
@@ -822,7 +793,7 @@ func main() {
 		out := flag.CommandLine.Output()
 		fmt.Fprintf(out, "usage: ango-launcher [-ango path] [folder-proyek ...]\n\n")
 		fmt.Fprintf(out, "Folder proyek diambil dari (yang pertama ada): argumen, env ANGO_PROJECTS,\n")
-		fmt.Fprintf(out, "konfigurasi (~/.config/ango/launcher.json), lalu folder 'projects' di samping launcher.\n\n")
+		fmt.Fprintf(out, "konfigurasi (launcher.json di folder konfigurasi pengguna), lalu folder 'projects' di samping launcher.\n\n")
 		flag.PrintDefaults()
 	}
 	flag.Parse()
