@@ -1,0 +1,27 @@
+name: Bug
+description: Sesuatu tidak berfungsi seperti seharusnya
+labels: ["type:bug"]
+body:
+  - type: textarea
+    id: apa
+    attributes:
+      label: Apa yang terjadi
+      description: Hasil sebenarnya dan hasil yang diharapkan.
+    validations: { required: true }
+  - type: textarea
+    id: langkah
+    attributes:
+      label: Langkah mereproduksi
+      description: Skrip .ango minimal atau perintah yang dijalankan.
+      render: shell
+    validations: { required: true }
+  - type: dropdown
+    id: os
+    attributes:
+      label: Sistem operasi
+      options: [Linux, Windows, Keduanya, Lainnya]
+    validations: { required: true }
+  - type: input
+    id: versi
+    attributes:
+      label: Versi (keluaran `ango -version`)

@@ -21,6 +21,7 @@ Ango adalah engine visual novel berbasis Go dengan bahasa skrip sendiri (`.ango`
 | [Platform](platforms.md) | Linux dan Windows: kebutuhan, build, lintas-kompilasi, pemecahan masalah |
 | [Arsitektur](architecture.md) | Alur data dari sumber hingga layar, batas antarpaket |
 | [Pengujian](testing.md) | Jenis tes, cara menjalankan, dan cara menambah tes |
+| [Manajemen proyek](project-management.md) | Papan kanban GitHub Projects, kolom, WIP, dan Definition of Done |
 | [CONTRIBUTING](../../CONTRIBUTING.md) | Alur kerja kontribusi dan standar kode |
 | [CHANGELOG](../../CHANGELOG.md) | Riwayat perubahan |
 

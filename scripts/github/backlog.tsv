@@ -1,0 +1,26 @@
+# title|area|priority|milestone|stage|description
+# area: engine, language, backend, launcher, gui, docs, tooling, platform
+# priority: P0 (blocker) P1 (high) P2 (normal) P3 (someday)
+# stage: Backlog, To Do, In Progress, Review, Done
+Verifikasi visual flip di -window (examples/flip-test)|backend|P1|v0.2|To Do|Flip sudah lolos tes VM (TestShowFlip); periksa tampilannya di window untuk sprite kiri, tengah, dan kanan.
+Uji manual window dan launcher di Windows|platform|P0|v0.2|To Do|Build Windows sudah lolos cross-compile dan vet tetapi belum dijalankan. Cek -window, launcher, dialog pilih folder, play.bat, dan ango.bat.
+Menu utama kustom (Mulai, Lanjut, Keluar)|gui|P1|v0.2|Backlog|Menu utama dan menu jeda berbasis theme.json; tombol Lanjut menunggu fitur simpan.
+Antarmuka GUI dialog kustom (textbox, tombol, namebox)|gui|P1|v0.2|Backlog|Pastikan semua gambar opsional di assets/gui dipakai konsisten; tambah bingkai sembilan-irisan.
+Simpan dan muat permainan|engine|P1|v0.2|Backlog|Serialisasi GameState ke JSON, slot simpan, dan tombol Lanjut. State sudah dapat Clone dan Restore.
+Rollback dialog (kembali satu baris)|engine|P2|v0.3|Backlog|Riwayat GameState dengan batas kedalaman; tombol dan scroll mouse di window.
+Audio: musik latar dan efek suara|backend|P1|v0.3|Backlog|Perintah bahasa (play/stop music, sound), pemuat dari assets/audio, volume. Butuh keputusan format (ogg, wav, mp3).
+Transisi tambahan: dissolve, slide, move|backend|P2|v0.3|Backlog|Perpindahan posisi karakter saat ini hanya fade. Lihat docs/v0.1.1/transitions.md bagian menambah transisi.
+Layar pengaturan (volume, kecepatan teks, layar penuh)|gui|P2|v0.3|Backlog|Simpan pengaturan per pengguna di folder konfigurasi.
+Pemeriksaan tipe saat compile|language|P2|v0.3|Backlog|if 1: dan "a" + 1 baru gagal saat dijalankan. Tambah pass tipe sederhana agar -check menangkapnya.
+Subcommand ango check/run/build/play|tooling|P2|v0.3|Backlog|Ganti flag dengan subcommand; pertahankan kompatibilitas flag lama sementara.
+Mode debug: overlay variabel dan lompat ke label|tooling|P3|v0.4|Backlog|ango debug atau flag -debug dengan panel variabel dan state.
+Berkas bytecode terkompilasi (ango build)|tooling|P3|v0.4|Backlog|Format Program yang dapat dimuat tanpa sumber, dengan nomor versi format.
+Penandatanganan binary Windows|platform|P3|v0.4|Backlog|Hindari peringatan SmartScreen; butuh sertifikat dan langkah di CI.
+Dukungan Android|platform|P2|v0.5|Backlog|Urutan platform: Linux, Windows, Android, Web. Evaluasi ebitenmobile dan aset lewat fs.FS.
+Dukungan Web (WASM)|platform|P3|v0.5|Backlog|Build Ebitengine ke WASM; aset di-embed atau diambil lewat HTTP.
+XML UI dan tema lanjutan|gui|P3|v0.5|Backlog|Ditunda dari vertical slice. Tentukan skema sebelum mulai.
+Editor dan LSP untuk .ango|tooling|P3|v0.5|Backlog|Ditunda. Mulai dari highlight sintaks dan diagnostik dari compiler.
+Ganti teks sementara di examples/intro/chapter2.ango|docs|P2|v0.2|To Do|Baris placeholder masih ada di cerita contoh yang ikut paket rilis.
+Dokumentasi pembuatan aset (ukuran, format, konvensi hadap kanan)|docs|P3|v0.2|Backlog|Panduan untuk ilustrator: resolusi, nama berkas, ekspresi minimal.
+Rilis v0.1.1: tag dan paket|tooling|P1|v0.2|Review|Tag git, jalankan make dist-all, unggah ke GitHub Releases.
+Dukungan macOS|platform|P3|v0.5|Backlog|Launcher sudah punya open dan osascript; belum diuji dan belum ada CI.

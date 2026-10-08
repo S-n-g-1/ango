@@ -200,7 +200,8 @@ Mulai dari [docs/v0.1.1/README.md](docs/v0.1.1/README.md):
 [Launcher](docs/v0.1.1/launcher.md) ·
 [Platform](docs/v0.1.1/platforms.md) ·
 [Arsitektur](docs/v0.1.1/architecture.md) ·
-[Pengujian](docs/v0.1.1/testing.md)
+[Pengujian](docs/v0.1.1/testing.md) ·
+[Manajemen proyek](docs/v0.1.1/project-management.md)
 
 ## Keterbatasan saat ini
 
@@ -216,7 +217,7 @@ Mulai dari [docs/v0.1.1/README.md](docs/v0.1.1/README.md):
 
 ## Berkontribusi
 
-Lihat [CONTRIBUTING.md](CONTRIBUTING.md) untuk standar kode, aturan lintas-platform, dan alur perubahan.
+Lihat [CONTRIBUTING.md](CONTRIBUTING.md) untuk standar kode, aturan lintas-platform, dan alur perubahan. Pekerjaan dikelola di papan kanban GitHub Projects ([cara kerja](docs/v0.1.1/project-management.md)).
 
 ## Lisensi
 

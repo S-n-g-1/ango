@@ -12,6 +12,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 - Flag `ango -version`.
 - GitHub Actions: tes di Linux dan Windows, lalu build dan paket kedua platform.
 - `.gitattributes` untuk normalisasi akhir baris, dan target `make fmt-check`, `cover`, `cross`.
+- Papan kanban GitHub Projects: `scripts/github/setup-project.sh` (label, milestone, kolom, field, backlog awal), template issue dan PR, serta `docs/v0.1.1/project-management.md`.
 - Dokumentasi baru di `docs/v0.1.1/`: memulai, referensi bahasa, platform, arsitektur, pengujian, launcher, tema GUI. `CONTRIBUTING.md` dan `CHANGELOG.md`.
 
 ### Diubah

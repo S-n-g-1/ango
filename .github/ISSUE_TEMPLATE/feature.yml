@@ -1,0 +1,21 @@
+name: Fitur
+description: Usulan fitur atau tugas baru
+labels: ["type:feature"]
+body:
+  - type: textarea
+    id: tujuan
+    attributes:
+      label: Tujuan
+      description: Masalah apa yang diselesaikan?
+    validations: { required: true }
+  - type: textarea
+    id: kriteria
+    attributes:
+      label: Kriteria selesai
+      description: Daftar periksa yang bisa diverifikasi.
+      value: |
+        - [ ] 
+        - [ ] Tes ditambahkan
+        - [ ] Dokumentasi dan CHANGELOG diperbarui
+        - [ ] Lolos di Linux dan Windows
+    validations: { required: true }
